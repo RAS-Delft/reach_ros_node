@@ -39,15 +39,25 @@ from rclpy.node import Node
 from reach_ros_node.checksum_utils import check_nmea_checksum
 import reach_ros_node.parser
 
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
+
 class RosNMEADriver(object):
     def __init__(self,parent_node:Node):
         # Set parent node 
         self.parent = parent_node
 
+        custom_qos_profile = QoSProfile(
+    		reliability=QoSReliabilityPolicy.BEST_EFFORT,
+    		history=QoSHistoryPolicy.KEEP_LAST,
+    		depth=1,
+    		durability=QoSDurabilityPolicy.VOLATILE
+		)
+
         # Our publishers
-        self.parent.fix_pub = self.parent.create_publisher(NavSatFix,'tcpfix',10)
-        self.parent.vel_pub = self.parent.create_publisher(TwistStamped,'tcpvel',10)
-        self.parent.timeref_pub = self.parent.create_publisher(TimeReference,'tcptime',10)
+        self.parent.fix_pub = self.parent.create_publisher(NavSatFix,'tcpfix',custom_qos_profile)
+        self.parent.vel_pub = self.parent.create_publisher(TwistStamped,'tcpvel',custom_qos_profile)
+        self.parent.timeref_pub = self.parent.create_publisher(TimeReference,'tcptime',custom_qos_profile)
 
         # Frame of references we should publish in
         self.frame_timeref = self.parent.get_parameter('frame_timeref').value
